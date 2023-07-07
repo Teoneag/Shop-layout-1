@@ -6,6 +6,15 @@ Widget loadingCenter() {
   );
 }
 
+Widget loadingCenterPadding() {
+  return const Padding(
+    padding: EdgeInsets.all(8.0),
+    child: Center(
+      child: CircularProgressIndicator(),
+    ),
+  );
+}
+
 const successS = 'Success!';
 
 showSnackBar(String content, BuildContext context) {
@@ -14,4 +23,9 @@ showSnackBar(String content, BuildContext context) {
       content: Text(content),
     ),
   );
+}
+
+class BoolWrapper {
+  bool value;
+  BoolWrapper(this.value);
 }

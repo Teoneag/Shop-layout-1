@@ -1,15 +1,16 @@
-import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
+import 'package:shop_layout_1/widgets/auth_widgets.dart';
 import '/utils/consts.dart';
 import '/utils/utils.dart';
 import '/utils/routes.dart';
 import '/firebase/auth_methods.dart';
 
 // TODO: add forgot password, veify email
-// TODO: there is not user, wrong password, other errors
+// TODO: there is not user, wrong password, no internet, bad email for forgot password, other errors
 // TODO: modify the register screen
 // add language support
 // terms of use & privacy policy
+// TODO: widget vs stateless widget
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,8 +23,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailC = TextEditingController();
   final _passC = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _obscureText = true;
+  final BoolWrapper _obscureText = BoolWrapper(true);
   bool _isLoading = false;
+  bool _isForgotLoading = false;
+  bool _isEmailSend = false;
 
   @override
   void dispose() {
@@ -32,13 +35,13 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future loginUser() async {
+  Future _loginUser() async {
     if (_formKey.currentState!.validate() == false) return;
     setState(() {
       _isLoading = true;
     });
     String res = await AuthM.loginUser(_emailC.text, _passC.text);
-    if (res != successS) {}
+    if (res != successS) {} // TODO: handel the errors
     showSnackBar(res, context);
     if (res == successS) {
       Navigator.of(context)
@@ -46,6 +49,23 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     setState(() {
       _isLoading = false;
+    });
+  }
+
+  Future _forgotPassword() async {
+    setState(() {
+      _isForgotLoading = true;
+    });
+
+    String res = await AuthM.forgotPassword(_emailC.text);
+    showSnackBar(res, context);
+    if (res == successS) {
+      setState(() {
+        _isEmailSend = true;
+      });
+    }
+    setState(() {
+      _isForgotLoading = false;
     });
   }
 
@@ -65,56 +85,35 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text('Welcome back',
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 10),
-                TextFormField(
-                  controller: _emailC,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter your email',
-                  ),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    if (EmailValidator.validate(value) == false) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
-                ),
+                emailField(_emailC),
                 const SizedBox(height: 10),
-                TextFormField(
-                  controller: _passC,
-                  keyboardType: TextInputType.visiblePassword,
-                  obscureText: _obscureText,
-                  decoration: InputDecoration(
-                    hintText: 'Enter your password',
-                    suffixIcon: Tooltip(
-                      message: _obscureText ? 'Show password' : 'Hide password',
-                      child: GestureDetector(
-                        onTap: () =>
-                            setState(() => _obscureText = !_obscureText),
-                        child: Icon(
-                          _obscureText
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                        ),
-                      ),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    if (value.length < 6) {
-                      return 'The password should be at least 6 characters long';
-                    }
-                    return null;
-                  },
-                ),
+                passField(_passC, _obscureText, setState),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: loginUser,
+                  onPressed: _loginUser,
                   child: _isLoading ? loadingCenter() : const Text('Log in'),
+                ),
+                const SizedBox(height: 5),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: _isForgotLoading
+                      ? loadingCenter()
+                      : Row(
+                          children: [
+                            TextButton(
+                              onPressed: () => _forgotPassword(),
+                              child: _isEmailSend
+                                  ? const Text('Resend email')
+                                  : const Text('Forgot password?'),
+                            ),
+                            _isEmailSend
+                                ? const Text(
+                                    'Email send. Check inbox!',
+                                    style: TextStyle(color: Colors.green),
+                                  )
+                                : Container(),
+                          ],
+                        ),
                 ),
                 const SizedBox(height: 5),
                 Row(
@@ -130,34 +129,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
                 const SizedBox(height: 15),
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(child: Divider()),
-                    SizedBox(width: 15),
-                    Text('OR'),
-                    SizedBox(width: 15),
-                    Expanded(child: Divider()),
-                  ],
-                ),
+                orSeparator(),
                 const SizedBox(height: 23),
-                ElevatedButton(
-                  onPressed: () => AuthM.signInWithGoogle(context),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          googlelogoPath,
-                          height: 24.0,
-                        ),
-                        const SizedBox(width: 10),
-                        const Text('Continue with Google'),
-                      ],
-                    ),
-                  ),
-                ),
+                continueWithGoogleButton(context),
                 const Spacer(),
                 const Text('Terms of use | Privacy policy'),
               ],

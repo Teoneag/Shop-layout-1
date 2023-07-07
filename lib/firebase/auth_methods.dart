@@ -14,10 +14,17 @@ class AuthM {
   static final _auth = FirebaseAuth.instance;
   // static final _firestore = FirebaseFirestore.instance;
 
+  static Future<String> forgotPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      return successS;
+    } catch (e) {
+      return '$someErrorS: $e';
+    }
+  }
+
   static Future signInWithGoogle(BuildContext context) async {
-    print('starting');
     String res = await _signInWithGoogle();
-    print('done');
     showSnackBar(res, context);
     if (res == successS) {
       Navigator.of(context)

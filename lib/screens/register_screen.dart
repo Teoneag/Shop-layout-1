@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shop_layout_1/widgets/auth_widgets.dart';
 import '/utils/consts.dart';
 import '/utils/utils.dart';
 import '/utils/routes.dart';
@@ -14,7 +15,9 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailC = TextEditingController();
   final TextEditingController _passC = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  final BoolWrapper _obscureText = BoolWrapper(true);
 
   @override
   void dispose() {
@@ -24,6 +27,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future registerUser() async {
+    if (_formKey.currentState!.validate() == false) return;
     setState(() {
       _isLoading = true;
     });
@@ -41,99 +45,51 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
+      body: Center(
+        child: Container(
           padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(appName, style: Theme.of(context).textTheme.titleLarge),
-              Center(
-                child: SizedBox(
-                  width: 300 + MediaQuery.of(context).size.width * 0.1,
-                  child: Column(
-                    children: [
-                      // svg image
-                      // SvgPicture.asset(
-                      //   'assets/logo_CoinSky_1_2.svg',
-                      //   height: 90,
-                      // ),
-                      Text('Welcome',
-                          style: Theme.of(context).textTheme.titleLarge),
-
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _emailC,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration:
-                            const InputDecoration(hintText: 'Enter your email'),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _passC,
-                        keyboardType: TextInputType.visiblePassword,
-                        decoration: const InputDecoration(
-                            hintText: 'Enter your password'),
-                        obscureText: true,
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      ElevatedButton(
-                        // TODO: add padding
-                        onPressed: registerUser,
-                        child: _isLoading
-                            ? loadingCenter()
-                            : const Text('Register'),
-                      ),
-                      const SizedBox(height: 5),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text("Already have an account?"),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, Routes.login);
-                            },
-                            child: const Text('Log in'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 15),
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(child: Divider()),
-                          SizedBox(width: 15),
-                          Text('OR'),
-                          SizedBox(width: 15),
-                          Expanded(child: Divider()),
-                        ],
-                      ),
-                      const SizedBox(height: 23),
-                      ElevatedButton(
-                        onPressed: () => AuthM.signInWithGoogle(context),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                googlelogoPath,
-                                height: 24.0,
-                              ),
-                              const SizedBox(width: 10),
-                              const Text('Continue with Google'),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+          width: 300 + MediaQuery.of(context).size.width * 0.1,
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                Text(appName, style: Theme.of(context).textTheme.titleLarge),
+                const Spacer(),
+                Text('Welcome', style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 10),
+                emailField(_emailC),
+                const SizedBox(height: 10),
+                passField(_passC, _obscureText, setState),
+                const SizedBox(
+                  height: 20,
                 ),
-              ),
-              const Text('Terms of use | Privacy policy'),
-            ],
+                ElevatedButton(
+                  onPressed: registerUser,
+                  child: _isLoading
+                      ? loadingCenterPadding()
+                      : const Text('Register'),
+                ),
+                const SizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Already have an account?"),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, Routes.login);
+                      },
+                      child: const Text('Log in'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 15),
+                orSeparator(),
+                const SizedBox(height: 23),
+                continueWithGoogleButton(context),
+                const Spacer(),
+                const Text('Terms of use | Privacy policy'),
+              ],
+            ),
           ),
         ),
       ),
