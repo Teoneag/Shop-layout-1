@@ -4,11 +4,47 @@ import 'package:shop_layout_1/utils/utils.dart';
 import '/firebase/auth_methods.dart';
 import '/utils/consts.dart';
 
+Widget centerFormScaffol(
+    BuildContext context, GlobalKey formKey, List<Widget> children) {
+  return Scaffold(
+    body: Center(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        width: 300 + MediaQuery.of(context).size.width * 0.1,
+        child: Form(
+          key: formKey,
+          child: Column(
+            children: [
+              Text(appName, style: Theme.of(context).textTheme.titleLarge),
+              const Spacer(),
+              ...children,
+              const Spacer(),
+              const Text('Terms of use | Privacy policy'),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+Widget customButton1(String text, VoidCallback onPressed, bool isLoading) {
+  return isLoading
+      ? loadingCPTextSize()
+      : ElevatedButton(
+          onPressed: onPressed,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [Text(text)],
+          ),
+        );
+}
+
 Widget continueWithGoogleButton(BuildContext context) {
   return ElevatedButton(
     onPressed: () => AuthM.signInWithGoogle(context),
     child: Padding(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shop_layout_1/utils/utils.dart';
 import '/firebase/auth_methods.dart';
 import '/utils/routes.dart';
 
@@ -21,6 +22,7 @@ class LogOutDialog extends StatelessWidget {
               await AuthM.signOut();
               Navigator.of(context)
                   .pushNamedAndRemoveUntil(Routes.login, (route) => false);
+              showSnackBar(successS, context);
             },
             child: const Text('Log out')),
       ],

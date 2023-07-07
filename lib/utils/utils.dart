@@ -6,11 +6,15 @@ Widget loadingCenter() {
   );
 }
 
-Widget loadingCenterPadding() {
+Widget loadingCPTextSize() {
   return const Padding(
     padding: EdgeInsets.all(8.0),
     child: Center(
-      child: CircularProgressIndicator(),
+      child: SizedBox(
+        width: 20,
+        height: 20,
+        child: CircularProgressIndicator(),
+      ),
     ),
   );
 }

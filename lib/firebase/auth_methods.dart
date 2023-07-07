@@ -7,12 +7,25 @@ import '/utils/utils.dart';
 
 const String someErrorS = 'Some error occured...';
 const String enterAllS = 'Please enter all the fields...';
+const String verifyEmailS = 'Please verify your email!';
 
 const String usersS = 'users';
 
 class AuthM {
   static final _auth = FirebaseAuth.instance;
   // static final _firestore = FirebaseFirestore.instance;
+
+  static Future<String> verifyEmail(String email) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await user.sendEmailVerification();
+      }
+      return successS;
+    } catch (e) {
+      return '$someErrorS: $e';
+    }
+  }
 
   static Future<String> forgotPassword(String email) async {
     try {
@@ -53,6 +66,10 @@ class AuthM {
         email: email,
         password: pass,
       );
+      final user = _auth.currentUser;
+      if (user != null && user.emailVerified) {
+        return verifyEmailS;
+      }
       return successS;
     } catch (e) {
       return '$someErrorS: $e';

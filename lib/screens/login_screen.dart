@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:shop_layout_1/widgets/auth_widgets.dart';
-import '/utils/consts.dart';
+import '/widgets/auth_widgets.dart';
 import '/utils/utils.dart';
 import '/utils/routes.dart';
 import '/firebase/auth_methods.dart';
 
-// TODO: add forgot password, veify email
+// TODO: what to do with the snake dialogs, should i add open email?
 // TODO: there is not user, wrong password, no internet, bad email for forgot password, other errors
-// TODO: modify the register screen
-// add language support
-// terms of use & privacy policy
-// TODO: widget vs stateless widget
+// TODO: add language support
+// TODO: terms of use & privacy policy
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final String? initialEmail;
+
+  const LoginScreen({super.key, this.initialEmail});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -25,8 +24,12 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final BoolWrapper _obscureText = BoolWrapper(true);
   bool _isLoading = false;
-  bool _isForgotLoading = false;
-  bool _isEmailSend = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailC.text = widget.initialEmail ?? '';
+  }
 
   @override
   void dispose() {
@@ -35,110 +38,76 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future _loginUser() async {
+  Future _login() async {
     if (_formKey.currentState!.validate() == false) return;
     setState(() {
       _isLoading = true;
     });
     String res = await AuthM.loginUser(_emailC.text, _passC.text);
-    if (res != successS) {} // TODO: handel the errors
+    if (res != successS) {
+      if (res == verifyEmailS) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          Routes.verifyEmail,
+          (_) => false,
+          arguments: _emailC.text,
+        );
+      }
+    } // TODO: handel the errors
     showSnackBar(res, context);
     if (res == successS) {
-      Navigator.of(context)
-          .pushNamedAndRemoveUntil(Routes.home, (route) => false);
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        Routes.home,
+        (_) => false,
+      );
     }
     setState(() {
       _isLoading = false;
     });
   }
 
-  Future _forgotPassword() async {
-    setState(() {
-      _isForgotLoading = true;
-    });
-
-    String res = await AuthM.forgotPassword(_emailC.text);
-    showSnackBar(res, context);
-    if (res == successS) {
-      setState(() {
-        _isEmailSend = true;
-      });
-    }
-    setState(() {
-      _isForgotLoading = false;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          width: 300 + MediaQuery.of(context).size.width * 0.1,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                Text(appName, style: Theme.of(context).textTheme.titleLarge),
-                const Spacer(),
-                Text('Welcome back',
-                    style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 10),
-                emailField(_emailC),
-                const SizedBox(height: 10),
-                passField(_passC, _obscureText, setState),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _loginUser,
-                  child: _isLoading ? loadingCenter() : const Text('Log in'),
-                ),
-                const SizedBox(height: 5),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: _isForgotLoading
-                      ? loadingCenter()
-                      : Row(
-                          children: [
-                            TextButton(
-                              onPressed: () => _forgotPassword(),
-                              child: _isEmailSend
-                                  ? const Text('Resend email')
-                                  : const Text('Forgot password?'),
-                            ),
-                            _isEmailSend
-                                ? const Text(
-                                    'Email send. Check inbox!',
-                                    style: TextStyle(color: Colors.green),
-                                  )
-                                : Container(),
-                          ],
-                        ),
-                ),
-                const SizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Don't have an account?"),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, Routes.register);
-                      },
-                      child: const Text('Register'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                orSeparator(),
-                const SizedBox(height: 23),
-                continueWithGoogleButton(context),
-                const Spacer(),
-                const Text('Terms of use | Privacy policy'),
-              ],
-            ),
+    return centerFormScaffol(
+      context,
+      _formKey,
+      [
+        Text('Welcome back', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 10),
+        emailField(_emailC),
+        const SizedBox(height: 10),
+        passField(_passC, _obscureText, setState),
+        const SizedBox(height: 20),
+        customButton1('Log in', _login, _isLoading),
+        const SizedBox(height: 5),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
+                Routes.forgotPassowrd, (_) => false,
+                arguments: _emailC.text),
+            child: const Text('Forgot password?'),
           ),
         ),
-      ),
+        const SizedBox(height: 5),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text("Don't have an account?"),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamedAndRemoveUntil(
+                    context, Routes.register, (_) => false,
+                    arguments: _emailC.text);
+              },
+              child: const Text('Register'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 15),
+        orSeparator(),
+        const SizedBox(height: 23),
+        continueWithGoogleButton(context),
+      ],
     );
   }
 }
