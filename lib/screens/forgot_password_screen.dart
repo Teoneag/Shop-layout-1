@@ -18,6 +18,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _isEmailSend = false;
+  String? emailError;
 
   Future _forgotPassword() async {
     setState(() {
@@ -61,7 +62,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 10),
-        emailField(_emailC),
+        emailField(_emailC, emailError),
         const SizedBox(height: 20),
         _isLoading
             ? loadingCenter()

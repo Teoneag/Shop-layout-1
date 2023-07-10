@@ -42,9 +42,7 @@ class AuthM {
     if (res == successS) {
       Navigator.of(context)
           .pushNamedAndRemoveUntil(Routes.home, (route) => false);
-    } else {
-      print('idk');
-    }
+    } else {}
   }
 
   static Future<String> _signInWithGoogle() async {
@@ -67,12 +65,16 @@ class AuthM {
         password: pass,
       );
       final user = _auth.currentUser;
-      if (user != null && user.emailVerified) {
+      if (user != null && !user.emailVerified) {
         return verifyEmailS;
       }
       return successS;
+    } on FirebaseAuthException catch (e) {
+      // TODO: properly handdle errors
+      print('Firebase e: ${e.code}, ${e.message}');
+      return e.code;
     } catch (e) {
-      return '$someErrorS: $e';
+      return '$e';
     }
   }
 
@@ -92,8 +94,10 @@ class AuthM {
       //     .doc(cred.user!.uid)
       //     .set(user.toJson());
       return successS;
+    } on FirebaseAuthException catch (e) {
+      return e.code;
     } catch (e) {
-      return '$someErrorS: $e';
+      return '$e';
     }
   }
 

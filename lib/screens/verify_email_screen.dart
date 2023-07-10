@@ -14,16 +14,17 @@ class VerifyEmailScreen extends StatefulWidget {
 }
 
 class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
-  final _emailC = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  late String _email;
   bool _isLoading = false;
+  String? emailError;
 
   Future _verifiEmail() async {
     setState(() {
       _isLoading = true;
     });
 
-    String res = await AuthM.verifyEmail(_emailC.text);
+    String res = await AuthM.verifyEmail(_email);
     showSnackBar(res, context);
     setState(() {
       _isLoading = false;
@@ -33,14 +34,8 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
   @override
   void initState() {
     super.initState();
-    _emailC.text = widget.initialEmail ?? '';
+    _email = widget.initialEmail ?? '';
     _verifiEmail();
-  }
-
-  @override
-  void dispose() {
-    _emailC.dispose();
-    super.dispose();
   }
 
   @override
@@ -52,12 +47,11 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
         Text('Verify your email',
             style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 10),
-        const Text(
-          'We sent an email. Click the link inside to get started.',
+        Text(
+          'We sent an email to $_email. Click the link inside to get started.',
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 10),
-        emailField(_emailC),
         const SizedBox(height: 20),
         _isLoading
             ? loadingCenter()
@@ -76,7 +70,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
           onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
             Routes.login,
             (route) => false,
-            arguments: _emailC.text,
+            arguments: _email,
           ),
           child: const Text('Back to log in'),
         ),

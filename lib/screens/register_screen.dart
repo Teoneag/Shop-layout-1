@@ -19,6 +19,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   final BoolWrapper _obscureText = BoolWrapper(true);
+  String? emailError;
+  String? passError;
 
   @override
   void initState() {
@@ -34,22 +36,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future _register() async {
-    if (_formKey.currentState!.validate() == false) return;
     setState(() {
       _isLoading = true;
     });
-    String res = await AuthM.registerUser(_emailC.text, _passC.text);
+    await _registerLogic();
     setState(() {
       _isLoading = false;
     });
-    showSnackBar(res, context);
-    if (res == successS) {
+  }
+
+  Future _registerLogic() async {
+    try {
+      emailError = '';
+      passError = '';
+      if (_formKey.currentState!.validate() == false) return;
+      String res = await AuthM.registerUser(_emailC.text, _passC.text);
+      if (res != successS) {
+        if (res == 'unknown') {
+          emailError = 'Unknown error, try to log in or continue with Google';
+        }
+        // else {
+        //   print('res: $res');
+        //   showSnakeBar(context, 'Something went wrong, please try again');
+        // }
+        return;
+      }
       Navigator.pushNamedAndRemoveUntil(
         context,
         Routes.verifyEmail,
         (route) => false,
         arguments: _emailC.text,
       );
+    } catch (e) {
+      print(e);
     }
   }
 
@@ -62,9 +81,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Text('Welcome, please register!',
             style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 10),
-        emailField(_emailC),
+        emailField(_emailC, emailError),
         const SizedBox(height: 10),
-        passField(_passC, _obscureText, setState),
+        passField(_passC, _obscureText, setState, passError),
         const SizedBox(height: 20),
         customButton1('Register', _register, _isLoading),
         const SizedBox(height: 5),

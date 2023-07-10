@@ -73,12 +73,13 @@ Widget orSeparator() {
   );
 }
 
-Widget emailField(TextEditingController emailC) {
+Widget emailField(TextEditingController emailC, String? error) {
   return TextFormField(
     controller: emailC,
     keyboardType: TextInputType.emailAddress,
-    decoration: const InputDecoration(
+    decoration: InputDecoration(
       hintText: 'Enter your email',
+      errorText: error,
     ),
     validator: (value) {
       if (value!.isEmpty) {
@@ -93,13 +94,14 @@ Widget emailField(TextEditingController emailC) {
 }
 
 Widget passField(TextEditingController passC, BoolWrapper obscureText,
-    StateSetter setState) {
+    StateSetter setState, String? error) {
   return TextFormField(
     controller: passC,
     keyboardType: TextInputType.visiblePassword,
     obscureText: obscureText.value,
     decoration: InputDecoration(
       hintText: 'Enter your password',
+      errorText: error,
       suffixIcon: Tooltip(
         message: obscureText.value ? 'Show password' : 'Hide password',
         child: GestureDetector(

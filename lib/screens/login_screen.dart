@@ -24,6 +24,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final BoolWrapper _obscureText = BoolWrapper(true);
   bool _isLoading = false;
+  String? emailError;
+  String? passError;
 
   @override
   void initState() {
@@ -39,30 +41,46 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future _login() async {
-    if (_formKey.currentState!.validate() == false) return;
     setState(() {
       _isLoading = true;
     });
-    String res = await AuthM.loginUser(_emailC.text, _passC.text);
-    if (res != successS) {
-      if (res == verifyEmailS) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          Routes.verifyEmail,
-          (_) => false,
-          arguments: _emailC.text,
-        );
-      }
-    } // TODO: handel the errors
-    showSnackBar(res, context);
-    if (res == successS) {
+    await _loginLogic();
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  Future _loginLogic() async {
+    try {
+      emailError = '';
+      passError = '';
+      if (_formKey.currentState!.validate() == false) return;
+      String res = await AuthM.loginUser(_emailC.text, _passC.text);
+      if (res != successS) {
+        print('res: $res');
+        if (res == verifyEmailS) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            Routes.verifyEmail,
+            (_) => false,
+            arguments: _emailC.text,
+          );
+        } else if (res == 'user-not-found' || res == 'unknown') {
+          emailError =
+              'User not found, please register or continue with Google';
+        } else if (res == 'wrong-password') {
+          passError = 'Wrong password';
+        }
+        setState(() {});
+        _formKey.currentState!.validate();
+        return;
+      } // TODO: handel the errors
       Navigator.of(context).pushNamedAndRemoveUntil(
         Routes.home,
         (_) => false,
       );
+    } catch (e) {
+      print(e);
     }
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   @override
@@ -73,9 +91,9 @@ class _LoginScreenState extends State<LoginScreen> {
       [
         Text('Welcome back', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 10),
-        emailField(_emailC),
+        emailField(_emailC, emailError),
         const SizedBox(height: 10),
-        passField(_passC, _obscureText, setState),
+        passField(_passC, _obscureText, setState, passError),
         const SizedBox(height: 20),
         customButton1('Log in', _login, _isLoading),
         const SizedBox(height: 5),
