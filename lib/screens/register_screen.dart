@@ -68,7 +68,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       } else {
         _emailError = res;
       }
-      return;
+      setState(() {});
+      _formKey.currentState!.validate();
     } catch (e) {
       print(e);
     }

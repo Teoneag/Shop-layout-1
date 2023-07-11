@@ -48,22 +48,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       }
       setState(() {});
       _formKey.currentState!.validate();
-      return;
     } catch (e) {
       print(e);
     }
   }
 
   @override
-  void initState() {
-    super.initState();
-    _emailC.text = widget.initialEmail ?? '';
+  dispose() {
+    _emailC.dispose();
+    super.dispose();
   }
 
   @override
-  void dispose() {
-    _emailC.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _emailC.text = widget.initialEmail ?? '';
   }
 
   @override

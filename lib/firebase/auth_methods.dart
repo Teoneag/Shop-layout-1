@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import '/utils/routes.dart';
 import '/utils/utils.dart';
 
-const someErrorS = 'Some error occured...';
-const enterAllS = 'Please enter all the fields...';
-const verifyEmailS = 'Please verify your email!';
-const usersS = 'users';
+const someErrorS = 'Some error occured';
+const enterAllS = 'Please enter all the fields';
+const verifyEmailS = 'Please verify your email';
 
 const unknownS = 'unknown';
 const userNotFoundS = 'user-not-found';
@@ -90,7 +89,6 @@ class AuthM {
       }
       return successS;
     } on FirebaseAuthException catch (e) {
-      print(e.message);
       if (e.code == unknownS) {
         if (e.message == userNotFoundMessage) {
           return userNotFoundS;

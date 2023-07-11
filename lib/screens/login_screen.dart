@@ -4,13 +4,6 @@ import '/utils/utils.dart';
 import '/utils/routes.dart';
 import '/firebase/auth_methods.dart';
 
-// TODO: make all error messages seable
-// TODO: should i add open email?
-// TODO: there is not user, wrong password, no internet, bad email for forgot password, other errors
-// TODO: add language support
-// TODO: terms of use & privacy policy
-// TODO: continue with google errors
-
 class LoginScreen extends StatefulWidget {
   final String? initialEmail;
 
@@ -71,7 +64,9 @@ class _LoginScreenState extends State<LoginScreen> {
           (_) => false,
           arguments: _emailC.text,
         );
-      } else if (res == userNotFoundS) {
+        return;
+      }
+      if (res == userNotFoundS) {
         _emailError = 'User not found. Please register or continue with Google';
       } else if (res == wrongPassS) {
         _passError = 'Wrong password, please try again or continue with Google';
@@ -83,7 +78,6 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       setState(() {});
       _formKey.currentState!.validate();
-      return;
     } catch (e) {
       print(e);
     }
