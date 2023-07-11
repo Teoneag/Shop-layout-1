@@ -93,7 +93,7 @@ Widget emailField(TextEditingController emailC, String? error) {
   );
 }
 
-Widget passField(TextEditingController passC, BoolWrapper obscureText,
+Widget passField(TextEditingController passC, BoolW obscureText,
     StateSetter setState, String? error) {
   return TextFormField(
     controller: passC,

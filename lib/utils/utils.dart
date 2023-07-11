@@ -29,7 +29,12 @@ showSnackBar(String content, BuildContext context) {
   );
 }
 
-class BoolWrapper {
+class BoolW {
   bool value;
-  BoolWrapper(this.value);
+  BoolW(this.value);
+}
+
+class StringW {
+  String? v;
+  StringW(this.v);
 }

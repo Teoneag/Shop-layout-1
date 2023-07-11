@@ -18,9 +18,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _passC = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  final BoolWrapper _obscureText = BoolWrapper(true);
-  String? emailError;
-  String? passError;
+  final BoolW _obscureText = BoolW(true);
+  String? _emailError;
+  String? _passError;
 
   @override
   void initState() {
@@ -47,26 +47,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future _registerLogic() async {
     try {
-      emailError = '';
-      passError = '';
+      _emailError = '';
+      _passError = '';
       if (_formKey.currentState!.validate() == false) return;
       String res = await AuthM.registerUser(_emailC.text, _passC.text);
-      if (res != successS) {
-        if (res == 'unknown') {
-          emailError = 'Unknown error, try to log in or continue with Google';
-        }
-        // else {
-        //   print('res: $res');
-        //   showSnakeBar(context, 'Something went wrong, please try again');
-        // }
+      if (res == successS) {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          Routes.verifyEmail,
+          (route) => false,
+          arguments: _emailC.text,
+        );
         return;
       }
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        Routes.verifyEmail,
-        (route) => false,
-        arguments: _emailC.text,
-      );
+      if (res == emailAlreadyInUseS) {
+        _emailError =
+            'Email already in use, please log in or continue with Google';
+      } else if (res == 'unknown') {
+        _emailError = 'Unknown error, try to log in or continue with Google';
+      } else {
+        _emailError = res;
+      }
+      return;
     } catch (e) {
       print(e);
     }
@@ -81,9 +83,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Text('Welcome, please register!',
             style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 10),
-        emailField(_emailC, emailError),
+        emailField(_emailC, _emailError),
         const SizedBox(height: 10),
-        passField(_passC, _obscureText, setState, passError),
+        passField(_passC, _obscureText, setState, _passError),
         const SizedBox(height: 20),
         customButton1('Register', _register, _isLoading),
         const SizedBox(height: 5),

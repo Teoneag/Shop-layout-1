@@ -14,49 +14,61 @@ class VerifyEmailScreen extends StatefulWidget {
 }
 
 class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
-  final _formKey = GlobalKey<FormState>();
   late String _email;
   bool _isLoading = false;
-  String? emailError;
+  String? _emailError;
 
-  Future _verifiEmail() async {
+  Future _verifyEmail() async {
     setState(() {
       _isLoading = true;
     });
-
-    String res = await AuthM.verifyEmail(_email);
-    showSnackBar(res, context);
+    await _verifiEmailLogic();
     setState(() {
       _isLoading = false;
     });
+  }
+
+  Future _verifiEmailLogic() async {
+    try {
+      String res = await AuthM.verifyEmail(_email);
+      if (res != successS) {
+        _emailError = res;
+        setState(() {});
+        return;
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override
   void initState() {
     super.initState();
     _email = widget.initialEmail ?? '';
-    _verifiEmail();
+    _verifyEmail();
   }
 
   @override
   Widget build(BuildContext context) {
     return centerFormScaffol(
       context,
-      _formKey,
+      GlobalKey<FormState>(),
       [
         Text('Verify your email',
             style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 10),
-        Text(
-          'We sent an email to $_email. Click the link inside to get started.',
-          textAlign: TextAlign.center,
-        ),
+        _emailError == null
+            ? Text(
+                'We sent an email to $_email. Click the link inside to get started.',
+                textAlign: TextAlign.center,
+              )
+            : Text(_emailError!, style: const TextStyle(color: Colors.red)),
         const SizedBox(height: 10),
         const SizedBox(height: 20),
         _isLoading
             ? loadingCenter()
             : ElevatedButton(
-                onPressed: () => _verifiEmail(),
+                onPressed: () => _verifyEmail(),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

@@ -1,19 +1,25 @@
-// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-// import '/models/user_model.dart' as model;
 import '/utils/routes.dart';
 import '/utils/utils.dart';
 
-const String someErrorS = 'Some error occured...';
-const String enterAllS = 'Please enter all the fields...';
-const String verifyEmailS = 'Please verify your email!';
+const someErrorS = 'Some error occured...';
+const enterAllS = 'Please enter all the fields...';
+const verifyEmailS = 'Please verify your email!';
+const usersS = 'users';
 
-const String usersS = 'users';
+const unknownS = 'unknown';
+const userNotFoundS = 'user-not-found';
+const wrongPassS = 'wrong-password';
+const tooManyRequestsS = 'too-many-requests';
+const popupClosedByUserS = 'popup-closed-by-user';
+const emailAlreadyInUseS = 'email-already-in-use';
+
+const userNotFoundMessage =
+    'An unknown error occurred: FirebaseError: Firebase: There is no user record corresponding to this identifier. The user may have been deleted. (auth/user-not-found).';
 
 class AuthM {
   static final _auth = FirebaseAuth.instance;
-  // static final _firestore = FirebaseFirestore.instance;
 
   static Future<String> verifyEmail(String email) async {
     try {
@@ -31,6 +37,13 @@ class AuthM {
     try {
       await _auth.sendPasswordResetEmail(email: email);
       return successS;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == unknownS) {
+        if (e.message == userNotFoundMessage) {
+          return userNotFoundS;
+        }
+      }
+      return e.code;
     } catch (e) {
       return '$someErrorS: $e';
     }
@@ -38,11 +51,10 @@ class AuthM {
 
   static Future signInWithGoogle(BuildContext context) async {
     String res = await _signInWithGoogle();
-    showSnackBar(res, context);
     if (res == successS) {
       Navigator.of(context)
           .pushNamedAndRemoveUntil(Routes.home, (route) => false);
-    } else {}
+    }
   }
 
   static Future<String> _signInWithGoogle() async {
@@ -50,6 +62,14 @@ class AuthM {
       GoogleAuthProvider googleProvider = GoogleAuthProvider();
       await _auth.signInWithPopup(googleProvider);
       return successS;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == unknownS) {
+        if (e.message ==
+            'An unknown error occurred: FirebaseError: Firebase: The popup has been closed by the user before finalizing the operation. (auth/popup-closed-by-user).') {
+          return popupClosedByUserS;
+        }
+      }
+      return e.code;
     } catch (e) {
       return '$someErrorS: $e';
     }
@@ -70,8 +90,20 @@ class AuthM {
       }
       return successS;
     } on FirebaseAuthException catch (e) {
-      // TODO: properly handdle errors
-      print('Firebase e: ${e.code}, ${e.message}');
+      print(e.message);
+      if (e.code == unknownS) {
+        if (e.message == userNotFoundMessage) {
+          return userNotFoundS;
+        }
+        if (e.message ==
+            'An unknown error occurred: FirebaseError: Firebase: The password is invalid or the user does not have a password. (auth/wrong-password).') {
+          return wrongPassS;
+        }
+        if (e.message ==
+            'An unknown error occurred: FirebaseError: Firebase: Access to this account has been temporarily disabled due to many failed login attempts. You can immediately restore it by resetting your password or you can try again later. (auth/too-many-requests).') {
+          return tooManyRequestsS;
+        }
+      }
       return e.code;
     } catch (e) {
       return '$e';
@@ -83,18 +115,18 @@ class AuthM {
       if (email.isEmpty || pass.isEmpty) {
         return enterAllS;
       }
-      // UserCredential cred =
       await _auth.createUserWithEmailAndPassword(
         email: email,
         password: pass,
       );
-      // model.User user = model.User(cred.user!.uid, name, email);
-      // await _firestore
-      //     .collection(usersS)
-      //     .doc(cred.user!.uid)
-      //     .set(user.toJson());
       return successS;
     } on FirebaseAuthException catch (e) {
+      if (e.code == unknownS) {
+        if (e.message ==
+            'An unknown error occurred: FirebaseError: Firebase: The email address is already in use by another account. (auth/email-already-in-use).') {
+          return emailAlreadyInUseS;
+        }
+      }
       return e.code;
     } catch (e) {
       return '$e';
@@ -109,22 +141,4 @@ class AuthM {
       return '$someErrorS: $e';
     }
   }
-
-  // static Future<model.User> getCurrentUser() async {
-  //   try {
-  //     final snapshot = await _firestore.collection(S.users).doc(_uid).get();
-  //     return model.User.fromSnap(snapshot);
-  //   } catch (e) {
-  //     throw Exception(e);
-  //   }
-  // }
-
-  // static Future<String> getUsername() async {
-  //   try {
-  //     var snap = await _firestore.collection(S.users).doc(_uid).get();
-  //     return model.User.fromSnap(snap).username;
-  //   } catch (e) {
-  //     return '$e';
-  //   }
-  // }
 }

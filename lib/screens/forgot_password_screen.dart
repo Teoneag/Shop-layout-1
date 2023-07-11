@@ -18,23 +18,40 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _isEmailSend = false;
-  String? emailError;
+  String? _emailError;
 
   Future _forgotPassword() async {
     setState(() {
       _isLoading = true;
     });
-
-    String res = await AuthM.forgotPassword(_emailC.text);
-    showSnackBar(res, context);
-    if (res == successS) {
-      setState(() {
-        _isEmailSend = true;
-      });
-    }
+    await _forgotPasswordLogic();
     setState(() {
       _isLoading = false;
     });
+  }
+
+  Future _forgotPasswordLogic() async {
+    try {
+      if (_formKey.currentState!.validate() == false) return;
+      String res = await AuthM.forgotPassword(_emailC.text);
+      if (res == successS) {
+        setState(() {
+          _isEmailSend = true;
+        });
+        return;
+      }
+      if (res == 'user-not-found') {
+        _emailError =
+            'No user found. Please change email, register or continue with Google';
+      } else {
+        _emailError = res;
+      }
+      setState(() {});
+      _formKey.currentState!.validate();
+      return;
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override
@@ -62,7 +79,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 10),
-        emailField(_emailC, emailError),
+        emailField(_emailC, _emailError),
         const SizedBox(height: 20),
         _isLoading
             ? loadingCenter()

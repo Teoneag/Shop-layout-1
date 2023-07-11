@@ -4,10 +4,12 @@ import '/utils/utils.dart';
 import '/utils/routes.dart';
 import '/firebase/auth_methods.dart';
 
-// TODO: what to do with the snake dialogs, should i add open email?
+// TODO: make all error messages seable
+// TODO: should i add open email?
 // TODO: there is not user, wrong password, no internet, bad email for forgot password, other errors
 // TODO: add language support
 // TODO: terms of use & privacy policy
+// TODO: continue with google errors
 
 class LoginScreen extends StatefulWidget {
   final String? initialEmail;
@@ -22,10 +24,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailC = TextEditingController();
   final _passC = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  final BoolWrapper _obscureText = BoolWrapper(true);
+  final BoolW _obscureText = BoolW(true);
   bool _isLoading = false;
-  String? emailError;
-  String? passError;
+  String? _emailError = '';
+  String? _passError = '';
 
   @override
   void initState() {
@@ -52,32 +54,36 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future _loginLogic() async {
     try {
-      emailError = '';
-      passError = '';
+      _emailError = '';
+      _passError = '';
       if (_formKey.currentState!.validate() == false) return;
       String res = await AuthM.loginUser(_emailC.text, _passC.text);
-      if (res != successS) {
-        print('res: $res');
-        if (res == verifyEmailS) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            Routes.verifyEmail,
-            (_) => false,
-            arguments: _emailC.text,
-          );
-        } else if (res == 'user-not-found' || res == 'unknown') {
-          emailError =
-              'User not found, please register or continue with Google';
-        } else if (res == 'wrong-password') {
-          passError = 'Wrong password';
-        }
-        setState(() {});
-        _formKey.currentState!.validate();
+      if (res == successS) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          Routes.home,
+          (_) => false,
+        );
         return;
-      } // TODO: handel the errors
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        Routes.home,
-        (_) => false,
-      );
+      }
+      if (res == verifyEmailS) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          Routes.verifyEmail,
+          (_) => false,
+          arguments: _emailC.text,
+        );
+      } else if (res == userNotFoundS) {
+        _emailError = 'User not found. Please register or continue with Google';
+      } else if (res == wrongPassS) {
+        _passError = 'Wrong password, please try again or continue with Google';
+      } else if (res == tooManyRequestsS) {
+        _emailError =
+            'Too many requests. Please try again later or change the password';
+      } else {
+        _emailError = res;
+      }
+      setState(() {});
+      _formKey.currentState!.validate();
+      return;
     } catch (e) {
       print(e);
     }
@@ -91,9 +97,9 @@ class _LoginScreenState extends State<LoginScreen> {
       [
         Text('Welcome back', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 10),
-        emailField(_emailC, emailError),
+        emailField(_emailC, _emailError),
         const SizedBox(height: 10),
-        passField(_passC, _obscureText, setState, passError),
+        passField(_passC, _obscureText, setState, _passError),
         const SizedBox(height: 20),
         customButton1('Log in', _login, _isLoading),
         const SizedBox(height: 5),
